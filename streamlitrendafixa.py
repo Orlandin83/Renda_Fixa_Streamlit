@@ -109,11 +109,11 @@ if st.button("Simular"):
     st.write(f"**Resultado final estimado da aplicação:** {resultado:.2f}%")
 
     st.markdown("---")
-    st.caption("Fonte: B3")
+    st.caption("Elaborado por FOO / Fonte: B3")
     st.info(
         "Disclaimer: Os resultados apresentados constituem meras projeções matemáticas baseadas na "
         "Estrutura a Termo da Taxa de Juros (ETTJ) vigente na data-base consultada. "
         "Este cálculo possui caráter estritamente informativo e não deve ser considerado como uma "
         "recomendação de investimento."
-        "Favor não imprimir"
+        "Favor não imprimir."
     )
