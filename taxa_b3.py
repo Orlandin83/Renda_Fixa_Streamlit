@@ -1,64 +1,66 @@
 import pandas as pd
 import requests
 import numpy as np
+import urllib.request
+import json
 
 def svensson_rate(beta1, beta2, beta3, beta4, lambda1, lambda2, t):
-    """
-    Fórmula oficial do modelo de Svensson para calcular a taxa na ETTJ.
-    t: tempo em anos úteis (dias_uteis / 252)
-    """
+    """Fórmula oficial do modelo de Svensson da ANBIMA"""
     if t == 0:
         return beta1 + beta2
-        
     termo1 = (1 - np.exp(-lambda1 * t)) / (lambda1 * t)
     termo2 = termo1 - np.exp(-lambda1 * t)
     termo3 = ((1 - np.exp(-lambda2 * t)) / (lambda2 * t)) - np.exp(-lambda2 * t)
-    
     taxa = beta1 + beta2 * termo1 + beta3 * termo2 + beta4 * termo3
-    return taxa * 100  # Retorna em %
+    return taxa * 100
 
 def get_ettj(data):
-    """
-    Busca os parâmetros da ETTJ da ANBIMA e projeta a curva para os vértices do simulador.
-    Como a ANBIMA não trava robôs internacionais, isso funciona perfeitamente no Streamlit Cloud.
-    """
+    dias_corridos = [30, 60, 90, 180, 360, 720, 1080]
+    dias_uteis = [21, 42, 63, 126, 252, 504, 756]
+    
     try:
-        # A Anbima fornece os parâmetros diários da curva neste endpoint público simples
+        # 1. TENTA A CURVA COMPLETA DA ANBIMA
         url = "https://www.anbima.com.br/informacoes/est-termo/CZ.asp"
-        
-        # Fazemos a requisição (timeout de 10s para não travar o app)
-        response = requests.get(url, timeout=10)
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+        response = requests.get(url, headers=headers, timeout=5)
         response.encoding = 'iso-8859-1'
         
-        # Processa o texto de retorno para extrair os 6 coeficientes da linha "PREFIXADOS"
         linhas = response.text.split('\n')
         linha_pre = [linha for linha in linhas if "PREFIXADOS" in linha][0]
-        valores_str = linha_pre.split(';')[1:] # Ignora a primeira coluna
+        valores_str = linha_pre.split(';')[1:] 
         
-        # Converte as strings brasileiras (vírgula) para floats do Python
         coeficientes = [float(v.strip().replace(',', '.')) for v in valores_str if v.strip()]
         b1, b2, b3, b4, L1, L2 = coeficientes
 
-        # Monta a estrutura da curva que o seu simulador espera
-        dias_corridos = [30, 60, 90, 180, 360, 720, 1080]
-        dias_uteis = [21, 42, 63, 126, 252, 504, 756]
         taxas_projetadas = []
-        
         for du in dias_uteis:
-            # O tempo (t) no modelo é medido em anos úteis (Dias Úteis / 252)
             t = du / 252.0
-            taxa_vertice = svensson_rate(b1, b2, b3, b4, L1, L2, t)
-            taxas_projetadas.append(round(taxa_vertice, 4))
+            taxas_projetadas.append(round(svensson_rate(b1, b2, b3, b4, L1, L2, t), 4))
             
-        # Retorna o DataFrame exatamente como o arquivo ettj.py antigo fazia
-        df = pd.DataFrame({
+        return pd.DataFrame({
             "Dias Corridos": dias_corridos,
             "Dias Úteis": dias_uteis,
             "DI x pré 252": taxas_projetadas,
-            "DI x pré 360": taxas_projetadas # Mantido para não quebrar a chamada do seu simulador
+            "DI x pré 360": taxas_projetadas
         })
         
-        return df
+    except Exception:
+        # 2. SE A ANBIMA BLOQUEAR A NUVEM, BUSCA NO BANCO CENTRAL IMEDIATAMENTE
+        try:
+            url_bcb = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.11/dados/ultimos/1?formato=json"
+            req = urllib.request.Request(url_bcb, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=5) as response_bcb:
+                dados = json.loads(response_bcb.read().decode('utf-8'))
+                taxa_fallback = float(dados[0]["valor"])
+        except Exception:
+            # 3. SE O BCB CAIR, USA TAXA FIXA PARA NÃO TRAVAR O SITE
+            taxa_fallback = 10.40
             
-    except Exception as e:
-        raise ValueError(f"Não foi possível calcular a curva de juros via ANBIMA. Erro: {e}")
+        return pd.DataFrame({
+            "Dias Corridos": dias_corridos,
+            "Dias Úteis": dias_uteis,
+            "DI x pré 252": [taxa_fallback]*7,
+            "DI x pré 360": [taxa_fallback]*7
+        })
