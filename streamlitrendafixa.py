@@ -1,12 +1,9 @@
 import streamlit as st
 import pandas as pd
-import os
 import datetime as dt
+import os
 
 st.set_page_config(page_title="Simulador CDI Futuro", page_icon="📈", layout="centered")
-
-st.title("Simulador de Renda Fixa Atrelada ao CDI")
-st.write("Simule operações em % do CDI ou CDI + Taxa Fixa com base na curva ETTJ oficial da B3.")
 
 @st.cache_data(show_spinner=False)
 def carregar_curva():
@@ -34,10 +31,18 @@ def carregar_curva():
         return vertice, data_base
         
     except Exception as e:
-        # Tira o st.stop() para não travar a tela inteira em branco se algo der errado
         st.error(f"Erro interno ao carregar a base de dados: {e}")
         return pd.DataFrame(), dt.date.today().strftime("%d/%m/%Y")
+
+# Carrega os dados silenciosamente logo que a página abre
+vertice, data_base = carregar_curva()
+
 # ----- AQUI COMEÇA A INTERFACE -----
+st.title("Simulador de Renda Fixa Atrelada ao CDI")
+st.write("Simule operações em % do CDI ou CDI + Taxa Fixa com base na curva ETTJ oficial da B3.")
+
+# Exibe a data de atualização em destaque usando um balão azul!
+st.info(f"🔄 **Curva de Juros:** Base de dados atualizada com o fechamento de **{data_base}**")
 
 modalidade = st.selectbox(
     "Informe a modalidade:",
@@ -60,10 +65,9 @@ taxa = st.number_input(
 )
 
 if st.button("Simular"):
-    with st.spinner("Consultando base de dados da B3..."):
-        vertice, data_base = carregar_curva()
-
-    # O MESMO CÓDIGO INTELIGENTE DE INTERPOLAÇÃO QUE VOCÊ CRIOU
+    # Como os dados já foram carregados no topo, não precisamos de "spinner" de consulta aqui.
+    # Vamos direto para os cálculos:
+    
     if prazo in vertice.index:
         di_aa = vertice.loc[prazo]
     else:
@@ -76,7 +80,7 @@ if st.button("Simular"):
     prazo_selecionado = int(di_aa.name)
     taxa_di = float(di_aa.values[0])
 
-    # OS CÁLCULOS QUE ARRUMAMOS ANTERIORMENTE
+    # Cálculos
     taxa_di_dia = ((1 + taxa_di / 100) ** (1 / 360) - 1) * 100
     fator_di = (1 + taxa_di_dia / 100) ** prazo_selecionado
     resultado_di = round(((fator_di - 1) * 100), 2)
@@ -98,7 +102,6 @@ if st.button("Simular"):
 
     # ----- MOSTRAR OS RESULTADOS -----
     st.subheader("Resultado")
-    st.write(f"**Data base da Curva B3:** {data_base}")
     st.write(f"**Vértice da Curva utilizado:** {prazo_selecionado} dias corridos")
     st.write(f"**DI projetado no vértice (a.a.):** {taxa_di:.2f}% a.a.")
     st.write(f"**Resultado estimado do DI na aplicação:** {resultado_di:.2f}%")
@@ -106,9 +109,11 @@ if st.button("Simular"):
     st.write(f"**Resultado final estimado da aplicação:** {resultado:.2f}%")
 
     st.markdown("---")
-    st.caption("Elaborado por: Fabricio Orlandin, CFP® / Fonte: B3")
+    st.caption("Fonte: B3")
     st.info(
         "Disclaimer: Os resultados apresentados constituem meras projeções matemáticas baseadas na "
         "Estrutura a Termo da Taxa de Juros (ETTJ) vigente na data-base consultada. "
-        "Este cálculo possui caráter estritamente informativo."
+        "Este cálculo possui caráter estritamente informativo e não deve ser considerado como uma "
+        "recomendação de investimento."
+        "Favor não imprimir"
     )
