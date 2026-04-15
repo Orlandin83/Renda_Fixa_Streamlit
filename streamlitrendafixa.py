@@ -9,9 +9,6 @@ st.title("Simulador de Renda Fixa Atrelada ao CDI")
 st.write("Simule operações em % do CDI ou CDI + Taxa Fixa com base na curva ETTJ oficial da B3.")
 
 @st.cache_data(show_spinner=False)
-import os
-
-@st.cache_data(show_spinner=False)
 def carregar_curva():
     try:
         # Pega o caminho absoluto da pasta atual para garantir que o Streamlit Cloud ache os arquivos
