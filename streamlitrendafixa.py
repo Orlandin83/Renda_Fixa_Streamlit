@@ -40,7 +40,7 @@ vertice, data_base = carregar_curva()
 # ----- AQUI COMEÇA A INTERFACE -----
 st.title("Simulador de Renda Fixa Atrelada ao CDI")
 st.write("Simule operações em % do CDI ou CDI + Taxa Fixa com base na curva ETTJ oficial da B3.")
-
+st.write("Elaborado por FOO")
 # Exibe a data de atualização em destaque usando um balão azul!
 st.info(f"🔄 **Curva de Juros:** Base de dados atualizada com o fechamento de **{data_base}**")
 
@@ -109,11 +109,11 @@ if st.button("Simular"):
     st.write(f"**Resultado final estimado da aplicação:** {resultado:.2f}%")
 
     st.markdown("---")
-    st.caption("Elaborado por FOO / Fonte: B3")
+    st.caption("Fonte: B3")
     st.info(
         "Disclaimer: Os resultados apresentados constituem meras projeções matemáticas baseadas na "
         "Estrutura a Termo da Taxa de Juros (ETTJ) vigente na data-base consultada. "
         "Este cálculo possui caráter estritamente informativo e não deve ser considerado como uma "
-        "recomendação de investimento."
+        "recomendação de investimento. "
         "Favor não imprimir."
     )
