@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import os
 import datetime as dt
 
 st.set_page_config(page_title="Simulador CDI Futuro", page_icon="📈", layout="centered")
@@ -8,28 +9,37 @@ st.title("Simulador de Renda Fixa Atrelada ao CDI")
 st.write("Simule operações em % do CDI ou CDI + Taxa Fixa com base na curva ETTJ oficial da B3.")
 
 @st.cache_data(show_spinner=False)
+import os
+
+@st.cache_data(show_spinner=False)
 def carregar_curva():
     try:
-        # Lê o CSV que foi gerado pelo seu script local
-        df_ettj = pd.read_csv('curva_b3.csv')
+        # Pega o caminho absoluto da pasta atual para garantir que o Streamlit Cloud ache os arquivos
+        diretorio_atual = os.path.dirname(os.path.abspath(__file__))
+        caminho_csv = os.path.join(diretorio_atual, 'curva_b3.csv')
+        caminho_txt = os.path.join(diretorio_atual, 'data_base.txt')
         
-        # Como o pyettj gera índices complexos, garantimos a leitura limpa:
+        # Lê o CSV diretamente com Pandas
+        df_ettj = pd.read_csv(caminho_csv)
+        
+        # Formata o DataFrame
         vertice = df_ettj[["Dias Corridos", "DI x pré 360"]].copy()
         vertice["Dias Corridos"] = vertice["Dias Corridos"].astype(int)
         vertice = vertice.set_index("Dias Corridos").sort_index()
         
         # Lê a data-base que você salvou no .txt (se não existir, põe a data de hoje)
-        try:
-            with open('data_base.txt', 'r') as f:
+        if os.path.exists(caminho_txt):
+            with open(caminho_txt, 'r', encoding='utf-8') as f:
                 data_base = f.read().strip()
-        except FileNotFoundError:
+        else:
             data_base = dt.date.today().strftime("%d/%m/%Y")
             
         return vertice, data_base
+        
     except Exception as e:
-        st.error(f"Erro ao carregar a base de dados da B3: {e}")
-        st.stop()
-
+        # Tira o st.stop() para não travar a tela inteira em branco se algo der errado
+        st.error(f"Erro interno ao carregar a base de dados: {e}")
+        return pd.DataFrame(), dt.date.today().strftime("%d/%m/%Y")
 # ----- AQUI COMEÇA A INTERFACE -----
 
 modalidade = st.selectbox(
