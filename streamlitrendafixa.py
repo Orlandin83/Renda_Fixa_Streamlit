@@ -1,5 +1,5 @@
 import streamlit as st
-from pyettj.ettj import get_ettj
+from taxa_b3 import get_ettj
 import datetime as dt
 
 st.set_page_config(page_title="Simulador CDI Futuro", page_icon="📈", layout="centered")
