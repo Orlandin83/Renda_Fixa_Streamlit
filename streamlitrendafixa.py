@@ -1,5 +1,5 @@
 import streamlit as st
-from pyettj import ettj
+from pyettj.ettj import get_ettj
 import datetime as dt
 
 st.set_page_config(page_title="Simulador CDI Futuro", page_icon="📈", layout="centered")
@@ -14,7 +14,7 @@ def carregar_ettj():
     while True:
         data_base = data_ref.strftime("%d/%m/%Y")
         try:
-            df_ettj = ettj.get_ettj(data_base)
+            df_ettj = get_ettj(data_base)
             return df_ettj, data_base
         except ValueError:
             data_ref = data_ref - dt.timedelta(days=1)

@@ -1,0 +1,24 @@
+# Ambientes virtuais
+.venv/
+venv/
+env/
+
+# Arquivos de sistema do macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Arquivos do Python e Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Arquivos locais e secrets do Streamlit
+.streamlit/secrets.toml
+.env
+
+# Editor de Código (VS Code / etc)
+.vscode/
+.idea/
