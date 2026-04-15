@@ -1,5 +1,5 @@
 #!/bin/sh
-'''exec' "/Users/fabricioorlandin/Library/Mobile Documents/com~apple~CloudDocs/Python/Renda Fixa StreamLit/.venv/bin/python3" "$0" "$@"
+'''exec' "/Users/fabricioorlandin/Library/Mobile Documents/com~apple~CloudDocs/Python/Renda Fixa StreamLit/.venv/bin/python3.14" "$0" "$@"
 ' '''
 import sys
 from jsonschema.cli import main
