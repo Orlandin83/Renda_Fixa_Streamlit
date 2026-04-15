@@ -38,9 +38,9 @@ def carregar_curva():
 vertice, data_base = carregar_curva()
 
 # ----- AQUI COMEÇA A INTERFACE -----
-st.title("Simulador de Renda Fixa Atrelada ao CDI")
+st.title("Simulador de Renda Fixa - CDI")
 st.write("Simule operações em % do CDI ou CDI + Taxa Fixa com base na curva ETTJ oficial da B3.")
-st.write("Elaborado por FOO")
+st.write("Elaborado por Fabricio")
 # Exibe a data de atualização em destaque usando um balão azul!
 st.info(f"🔄 **Curva de Juros:** Base de dados atualizada com o fechamento de **{data_base}**")
 
