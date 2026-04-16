@@ -42,7 +42,7 @@ if simular:
         try:
             # 1 e 2. CONFIG, DATABASE E EXTRAÇÃO (Busca Inteligente de Data)
             url = "https://www.anbima.com.br/informacoes/est-termo/CZ-down.asp"
-            max_dias = 3600
+            max_dias = 10000
             tipo_curva = "PREFIXADOS"
             
             data_teste = pd.Timestamp.today().normalize()
