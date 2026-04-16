@@ -26,7 +26,7 @@ with st.sidebar:
     modalidade = 1 if escolha == "% do CDI" else 2
     
     # Atualizado para pedir dias úteis
-    prazo = st.number_input("Prazo em dias úteis:", min_value=1, max_value=3600, value=252, step=1)
+    prazo = st.number_input("Prazo em dias úteis:", min_value=1, max_value=10000, value=252, step=1)
     taxa = st.number_input("Taxa negociada (ex: 110 ou 1.5):", min_value=0.0, value=110.0, step=0.1)
     
     st.markdown("---")
