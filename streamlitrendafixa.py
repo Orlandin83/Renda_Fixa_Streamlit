@@ -143,7 +143,7 @@ if simular:
 
             # Footer / Disclaimer
             st.markdown("---")
-            st.caption("**Fonte:** B3 / Metodologia Nelson-Siegel-Svensson (ANBIMA)")
+            st.caption("**Fonte:** ANBIMA / Metodologia Nelson-Siegel-Svensson")
             st.info("Disclaimer: Os resultados apresentados constituem meras projeções matemáticas baseadas na Estrutura a Termo da Taxa de Juros (ETTJ) vigente na data-base consultada. Tratando-se de estimativas fundamentadas em expectativas de mercado, os retornos reais apurados no vencimento poderão divergir das taxas aqui demonstradas devido à volatilidade econômica e às flutuações diárias da taxa CDI. Este cálculo possui caráter estritamente informativo e não configura promessa, recomendação de investimento ou garantia de rentabilidade futura.")
             
         except Exception as e:
