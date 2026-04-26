@@ -175,4 +175,11 @@ if simular:
             # Footer / Disclaimer
             st.markdown("---")
             st.caption("**Fonte:** ANBIMA / Metodologia Nelson-Siegel-Svensson")
-            st.info("Disclaimer: Os resultados apresentados constituem meras projeções matemáticas baseadas na Estrutura a Termo da Taxa de Juros (ETTJ) vigente na data-base consultada. Tratando-se de estimativas fundamentadas 
+            st.info("Disclaimer: Os resultados apresentados constituem meras projeções matemáticas baseadas na Estrutura a Termo da Taxa de Juros (ETTJ) vigente na data-base consultada. Tratando-se de estimativas fundamentadas em expectativas de mercado, os retornos reais apurados no vencimento poderão divergir das taxas aqui demonstradas devido à volatilidade econômica e às flutuações diárias da taxa CDI. Este cálculo possui caráter estritamente informativo e não configura promessa, recomendação de investimento ou garantia de rentabilidade futura.")
+            
+        except Exception as e:
+            st.error(f"Ops! Não foi possível acessar a base de dados da Anbima no momento. Tente novamente em alguns minutos. Detalhe: {e}")
+
+
+else:
+    st.info("👈 Preencha os dados no menu lateral e clique em **Simular** para projetar a curva.")
