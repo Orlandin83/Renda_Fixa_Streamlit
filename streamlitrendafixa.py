@@ -162,10 +162,10 @@ if simular:
                           title=f"Curva Prefixada Anbima - Base: {data_formatada}")
             
             fig.add_scatter(x=[prazo_selecionado], y=[taxa_di_anual], mode='markers', 
-                            marker=dict(color='gray', size=8, symbol='circle'), name="DI Base (ETTJ)")
+                            marker=dict(color='blue', size=8, symbol='circle'), name="DI Base (ETTJ)")
 
             fig.add_scatter(x=[prazo_selecionado], y=[taxa_plot], mode='markers', 
-                            marker=dict(color='red', size=12, symbol='star'), name="Sua Rentabilidade")
+                            marker=dict(color='red', size=12, symbol='circle'), name="Sua Rentabilidade")
             
             st.plotly_chart(fig, use_container_width=True)
 
