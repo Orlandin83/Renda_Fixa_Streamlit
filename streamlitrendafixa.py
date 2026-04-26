@@ -5,13 +5,16 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
+
 # ==========================================
 # CONFIGURAÇÃO DA PÁGINA STREAMLIT
 # ==========================================
 st.set_page_config(page_title="Simulador CDI Futuro", page_icon="📊", layout="centered")
 
+
 st.title("📊 Simulador de CDI Futuro")
 st.markdown("Cálculo baseado na Estrutura a Termo da Taxa de Juros (ETTJ) da Anbima")
+
 
 # ==========================================
 # SIDEBAR / MENU LATERAL DE INPUTS
@@ -21,18 +24,26 @@ with st.sidebar:
     
     escolha = st.selectbox(
         "Selecione a Modalidade:",
-        options=["% do CDI", "CDI + Taxa Fixa"]
+        options=["% do CDI", "CDI + Taxa Fixa", "Taxa Pré-fixada"]
     )
-    modalidade = 1 if escolha == "% do CDI" else 2
+    
+    # Define a modalidade numéricamente
+    if escolha == "% do CDI":
+        modalidade = 1
+    elif escolha == "CDI + Taxa Fixa":
+        modalidade = 2
+    else:
+        modalidade = 3
     
     # Atualizado para pedir dias úteis
     prazo = st.number_input("Prazo em dias úteis:", min_value=1, max_value=10000, value=252, step=1, format="%d")
-    taxa = st.number_input("Taxa negociada (ex: 110 ou 1.5):", min_value=0.0, value=110.0, step=0.1)
+    taxa = st.number_input("Taxa negociada (ex: 110, 1.5 ou 11):", min_value=0.0, value=110.0, step=0.1)
     
     st.markdown("---")
     st.caption("elaborado por: Fabricio Orlandin, CFP®")
     
     simular = st.button("Simular", type="primary", use_container_width=True)
+
 
 # ==========================================
 # LÓGICA MATEMÁTICA
@@ -104,7 +115,9 @@ if simular:
                 resultado = round(((fator_contratado - 1) * 100) , 2)
                 lbl_anual = "Retorno anual estimado"
                 val_anual = f"{taxa_contratada_ano:.2f}% a.a."
-            else:
+                taxa_plot = taxa_contratada_ano # Variável usada no gráfico
+                
+            elif modalidade == 2:
                 spread_dia = ((1 + taxa / 100) ** (1/252) - 1)
                 taxa_mista_dia = ((1 + taxa_di_dia) * (1 + spread_dia)) - 1
                 taxa_ano = (((1 + taxa_mista_dia) ** 252) - 1) * 100
@@ -112,6 +125,17 @@ if simular:
                 resultado = round(((fator_spread - 1) * 100), 2)
                 lbl_anual = "Retorno anual estimado"
                 val_anual = f"{taxa_ano:.2f}% a.a."
+                taxa_plot = taxa_ano # Variável usada no gráfico
+                
+            elif modalidade == 3:
+                pre_dia = ((1 + taxa / 100) ** (1/252) - 1)
+                taxa_ano = (((1 + pre_dia) ** 252) - 1) * 100
+                fator_pre = (1 + pre_dia) ** prazo_selecionado
+                resultado = round(((fator_pre - 1) * 100), 2)
+                lbl_anual = "Retorno anual estimado"
+                val_anual = f"{taxa_ano:.2f}% a.a."
+                taxa_plot = taxa_ano # Variável usada no gráfico
+
 
             # ==========================================
             # APRESENTAÇÃO DOS RESULTADOS
@@ -137,17 +161,18 @@ if simular:
                           labels={"Vertice": "Dias Úteis", "Taxa": "Taxa Anualizada (%)"},
                           title=f"Curva Prefixada Anbima - Base: {data_formatada}")
             
+            # 1. Ponto na curva mostrando o DI Base (Opcional, mas muito ilustrativo)
             fig.add_scatter(x=[prazo_selecionado], y=[taxa_di_anual], mode='markers', 
-                            marker=dict(color='red', size=10), name="Seu Prazo")
+                            marker=dict(color='gray', size=8, symbol='circle'), name="DI Base (ETTJ)")
+
+            # 2. Ponto de Rentabilidade do Usuário (Usando a variável taxa_plot)
+            fig.add_scatter(x=[prazo_selecionado], y=[taxa_plot], mode='markers', 
+                            marker=dict(color='red', size=12, symbol='star'), name="Sua Rentabilidade")
+            
             st.plotly_chart(fig, use_container_width=True)
+
 
             # Footer / Disclaimer
             st.markdown("---")
             st.caption("**Fonte:** ANBIMA / Metodologia Nelson-Siegel-Svensson")
-            st.info("Disclaimer: Os resultados apresentados constituem meras projeções matemáticas baseadas na Estrutura a Termo da Taxa de Juros (ETTJ) vigente na data-base consultada. Tratando-se de estimativas fundamentadas em expectativas de mercado, os retornos reais apurados no vencimento poderão divergir das taxas aqui demonstradas devido à volatilidade econômica e às flutuações diárias da taxa CDI. Este cálculo possui caráter estritamente informativo e não configura promessa, recomendação de investimento ou garantia de rentabilidade futura.")
-            
-        except Exception as e:
-            st.error(f"Ops! Não foi possível acessar a base de dados da Anbima no momento. Tente novamente em alguns minutos. Detalhe: {e}")
-
-else:
-    st.info("👈 Preencha os dados no menu lateral e clique em **Simular** para projetar a curva.")
+            st.info("Disclaimer: Os resultados apresentados constituem meras projeções matemáticas baseadas na Estrutura a Termo da Taxa de Juros (ETTJ) vigente na data-base consultada. Tratando-se de estimativas fundamentadas 
