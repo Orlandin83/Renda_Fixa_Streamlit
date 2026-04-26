@@ -165,7 +165,7 @@ if simular:
                             marker=dict(color='blue', size=8, symbol='circle'), name="DI Base (ETTJ)")
 
             fig.add_scatter(x=[prazo_selecionado], y=[taxa_plot], mode='markers', 
-                            marker=dict(color='red', size=12, symbol='circle'), name="Sua Rentabilidade")
+                            marker=dict(color='red', size=8, symbol='circle'), name="Sua Rentabilidade")
             
             st.plotly_chart(fig, use_container_width=True)
 
