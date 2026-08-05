@@ -8,7 +8,7 @@ import plotly.express as px
 # ==========================================
 # CONFIGURAÇÃO DA PÁGINA STREAMLIT
 # ==========================================
-st.set_page_config(page_title="Simulador CDI Futuro", page_icon="📊", layout="centered")
+st.set_page_config(page_title="Simulador de Renda Fixa através da Estrutura de Taxa a Termo da ANBIMA", page_icon="📊", layout="centered")
 
 st.title("📊 Simulador de CDI Futuro")
 st.markdown("Cálculo baseado na Estrutura a Termo da Taxa de Juros (ETTJ) da Anbima")
