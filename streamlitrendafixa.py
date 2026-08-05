@@ -10,7 +10,7 @@ import plotly.express as px
 # ==========================================
 st.set_page_config(page_title="Simulador de Renda Fixa através da Estrutura de Taxa a Termo da ANBIMA", page_icon="📊", layout="centered")
 
-st.title("📊 Simulador de CDI Futuro")
+st.title("📊 Simulador de Renda Fixa através da Estrutura de Taxa a Termo da ANBIMA")
 st.markdown("Cálculo baseado na Estrutura a Termo da Taxa de Juros (ETTJ) da Anbima")
 
 
