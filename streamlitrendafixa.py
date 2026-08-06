@@ -9,13 +9,13 @@ import plotly.express as px
 # CONFIGURAÇÃO DA PÁGINA STREAMLIT
 # ==========================================
 st.set_page_config(
-    page_title="Simulador de Renda Fixa através da Estrutura de Taxa a Termo da ANBIMA",
+    page_title="Simulador com a Estrutura de Taxa a Termo da ANBIMA",
     page_icon="📊",
     layout="centered",
 )
 
-st.title("📊 Simulador de Renda Fixa através da Estrutura de Taxa a Termo da ANBIMA")
-st.markdown("Cálculo baseado na Estrutura a Termo da Taxa de Juros (ETTJ) da ANBIMA")
+st.title("📊 Simulador com a Estrutura de Taxa a Termo da ANBIMA")
+st.markdown("Cálculo baseado na Estrutura a Termo da Taxa de Juros (ETTJ) Prefixada e IPCA da ANBIMA")
 
 
 # ==========================================
