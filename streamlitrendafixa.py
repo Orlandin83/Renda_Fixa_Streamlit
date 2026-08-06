@@ -14,7 +14,7 @@ st.set_page_config(
     layout="centered",
 )
 
-st.title("📊 Simulador com a Estrutura a Termo da Taxade Juros (ETTJ) da ANBIMA")
+st.title("📊 Simulador com a Estrutura a Termo da Taxa de Juros (ETTJ) da ANBIMA")
 st.markdown("Cálculo baseado na Estrutura a Termo da Taxa de Juros (ETTJ) Prefixada e IPCA da ANBIMA")
 
 
