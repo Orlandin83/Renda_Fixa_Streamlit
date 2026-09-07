@@ -1,3 +1,7 @@
+import logging
+
+from contador_simulacoes import atualizar_contador
+
 import streamlit as st
 import requests
 import numpy as np
@@ -105,11 +109,14 @@ def aplicar_taxa_ipca_plus(
     inflacao_impl: float,
     taxa_real: float,
     tipo_regime: str,
+    taxa_di_anual: float,
 ):
+    retorno_di = (1 + taxa_di_anual / 100) ** (prazo_uteis / 252) - 1
     taxa_real_dia = (1 + taxa_real / 100) ** (1 / 252) - 1
     taxa_ipca_dia = (1 + inflacao_impl / 100) ** (1 / 252) - 1
 
     fator_bruto = (1 + taxa_real_dia) ** prazo_uteis * (1 + taxa_ipca_dia) ** prazo_uteis
+    percentual_cdi = ((fator_bruto - 1) / retorno_di * 100) if abs(retorno_di) > 1e-12 else None
     valor_bruto = principal * fator_bruto
     lucro_bruto = valor_bruto - principal
     resultado_bruto = round((valor_bruto / principal - 1) * 100, 2)
@@ -125,7 +132,8 @@ def aplicar_taxa_ipca_plus(
             "fator_bruto": fator_bruto,
             "fator_liquido": fator_bruto,
             "aliquota_ir": 0.0,
-            "resultado_di": resultado_bruto,
+            "resultado_di": retorno_di * 100,
+            "percentual_cdi_bruto": percentual_cdi,
             "taxa_plot": round(taxa_aa, 2),
             "lucro_bruto": lucro_bruto / principal,
             "lucro_liquido": lucro_bruto / principal,
@@ -149,7 +157,8 @@ def aplicar_taxa_ipca_plus(
         "fator_bruto": fator_bruto,
         "fator_liquido": fator_liquido,
         "aliquota_ir": aliquota_ir,
-        "resultado_di": resultado_bruto,
+        "resultado_di": retorno_di * 100,
+        "percentual_cdi_bruto": percentual_cdi,
         "taxa_plot": round(taxa_aa, 2),
         "lucro_bruto": lucro_bruto / principal,
         "lucro_liquido": lucro_liquido / principal,
@@ -198,6 +207,7 @@ def calcular_titulo(
             inflacao_impl=curva_ipca_anbima,
             taxa_real=taxa_input,
             tipo_regime=tipo_regime,
+            taxa_di_anual=taxa_di_anual,
         )
     else:
         raise ValueError("Modalidade inválida.")
@@ -243,6 +253,16 @@ def calcular_titulo(
         "dias_corridos": dias_corridos,
     }
     return arredondar_resultado(res)
+
+
+def exibir_percentual_cdi(resultado):
+    percentual = resultado["percentual_cdi_bruto"]
+    st.metric("% do CDI projetado (bruto)", "N/D" if percentual is None else f"{percentual:.2f}%")
+    st.caption(
+        "Retorno bruto acumulado do título dividido pelo retorno bruto do CDI projetado "
+        "no mesmo prazo. Referência estimada pela curva prefixada ANBIMA."
+        if percentual is not None else "Comparação indisponível: retorno projetado do CDI igual a zero."
+    )
 
 
 with st.sidebar:
@@ -359,6 +379,8 @@ with st.sidebar:
     st.caption("elaborado por: Fabricio Orlandin, CFP®")
     simular = st.button("Simular", type="primary", use_container_width=True)
 
+simulacao_concluida = False
+
 if simular:
     with st.spinner("Conectando à ANBIMA e extraindo a Curva de Juros..."):
         try:
@@ -422,6 +444,7 @@ if simular:
                     inflacao_impl=inflacao_impl_1,
                     taxa_real=taxa_1,
                     tipo_regime=tipo_titulo_1,
+                    taxa_di_anual=taxa_di_1,
                 )
             else:
                 resultado_1 = calcular_titulo(
@@ -449,6 +472,7 @@ if simular:
                         inflacao_impl=inflacao_impl_2,
                         taxa_real=taxa_2,
                         tipo_regime=tipo_titulo_2,
+                        taxa_di_anual=taxa_di_2,
                     )
                 else:
                     resultado_2 = calcular_titulo(
@@ -487,9 +511,10 @@ if simular:
                     c6.metric("Taxa estimada a.a.", f"{resultado_1['taxa_anual_bruta']:.2f}% a.a.")
 
                 if modalidade_1 == 4:
+                    exibir_percentual_cdi(resultado_1)
                     st.info(
                         f"💡 **IPCA+**: a simulação usa a inflação implícita da ANBIMA no vértice selecionado "
-                        f"({inflacao_impl_1:.2f}% a.a.) somada à taxa real contratada pelo usuário ({taxa_1:.2f}% a.a.)."
+                        f"({inflacao_impl_1:.2f}% a.a.) composta com a taxa real contratada pelo usuário ({taxa_1:.2f}% a.a.)."
                     )
             else:
                 st.markdown("### Comparativo entre títulos")
@@ -510,6 +535,7 @@ if simular:
                         st.metric("Retorno Final", f"{resultado_1['resultado_liquido']:.2f}%")
 
                     if modalidade_1 == 4:
+                        exibir_percentual_cdi(resultado_1)
                         st.caption(
                             f"IPCA implícito ANBIMA: {inflacao_impl_1:.2f}% a.a. | Taxa real contratada: {taxa_1:.2f}% a.a."
                         )
@@ -529,6 +555,7 @@ if simular:
                         st.metric("Retorno Final", f"{resultado_2['resultado_liquido']:.2f}%")
 
                     if modalidade_2 == 4:
+                        exibir_percentual_cdi(resultado_2)
                         st.caption(
                             f"IPCA implícito ANBIMA: {inflacao_impl_2:.2f}% a.a. | Taxa real contratada: {taxa_2:.2f}% a.a."
                         )
@@ -587,9 +614,24 @@ if simular:
                 "e outros componentes de mercado. Assim, os retornos reais apurados no vencimento poderão divergir das taxas demonstradas devido à volatilidade econômica, às mudanças de curva, ao comportamento "
                 "da inflação, à tributação e às particularidades de cada ativo. Este cálculo possui caráter estritamente informativo e não configura promessa, recomendação de investimento ou garantia de rentabilidade futura."
             )
+            simulacao_concluida = True
         except Exception as e:
             st.error(
                 f"Ops! Não foi possível acessar a base de dados da ANBIMA no momento. Tente novamente em alguns minutos. Detalhe: {e}"
             )
 else:
     st.info("👈 Preencha os dados no menu lateral e clique em **Simular** para projetar a curva.")
+
+try:
+    try:
+        database_url = st.secrets.get("SIMULACOES_DATABASE_URL")
+    except FileNotFoundError:
+        database_url = None
+    total_simulacoes = atualizar_contador(incrementar=simulacao_concluida, database_url=database_url)
+    if total_simulacoes is None:
+        st.caption("Contador de simulações aguardando configuração")
+    else:
+        st.caption(f"{total_simulacoes:,} simulações feitas desde 07/09/2026".replace(",", "."))
+except Exception:
+    logging.getLogger(__name__).exception("Não foi possível atualizar o contador de simulações")
+    st.caption("Contador de simulações temporariamente indisponível")

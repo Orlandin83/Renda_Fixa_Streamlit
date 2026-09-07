@@ -22,3 +22,6 @@ __pycache__/
 # Editor de Código (VS Code / etc)
 .vscode/
 .idea/
+
+# Contador local de simulações
+data/
