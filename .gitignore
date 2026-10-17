@@ -23,5 +23,5 @@ __pycache__/
 .vscode/
 .idea/
 
-# Contador local de simulações
+# Dados locais
 data/

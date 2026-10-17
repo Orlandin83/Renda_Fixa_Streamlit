@@ -1,12 +1,10 @@
-import logging
-
-from contador_simulacoes import atualizar_contador
-
 import streamlit as st
 import requests
 import numpy as np
 import pandas as pd
 import plotly.express as px
+
+from pagina_curvas import exibir_curvas
 
 
 # ==========================================
@@ -17,6 +15,15 @@ st.set_page_config(
     page_icon="📊",
     layout="centered",
 )
+
+pagina = st.segmented_control(
+    "Navegação", ["Simulador de títulos", "Curvas de juros"],
+    default="Simulador de títulos", key="pagina", selection_mode="single",
+    label_visibility="collapsed", width="stretch",
+)
+if pagina == "Curvas de juros":
+    exibir_curvas()
+    st.stop()
 
 st.title("📊 Simulador com a Estrutura a Termo da Taxa de Juros (ETTJ) da ANBIMA")
 st.markdown("Cálculo baseado na Estrutura a Termo da Taxa de Juros (ETTJ) Prefixada e IPCA da ANBIMA")
@@ -379,8 +386,6 @@ with st.sidebar:
     st.caption("elaborado por: Fabricio Orlandin, CFP®")
     simular = st.button("Simular", type="primary", use_container_width=True)
 
-simulacao_concluida = False
-
 if simular:
     with st.spinner("Conectando à ANBIMA e extraindo a Curva de Juros..."):
         try:
@@ -608,30 +613,14 @@ if simular:
             st.markdown("---")
             st.caption("**Fonte:** ANBIMA / Metodologia Nelson-Siegel-Svensson")
             st.info(
-                "Disclaimer: Os resultados apresentados constituem meras projeções matemáticas baseadas na Estrutura a Termo da Taxa de Juros (ETTJ) vigente na data-base consultada. "
-                "Para os títulos IPCA+, a simulação utiliza a inflação implícita da ANBIMA, obtida a partir da relação entre a curva prefixada e a curva real, pela identidade de Fisher. "
-                "Essa inflação implícita não é uma previsão pura do IPCA realizado: ela reflete a precificação do mercado e pode incluir expectativa de inflação, prêmio de risco, prêmio de liquidez, convexidade "
-                "e outros componentes de mercado. Assim, os retornos reais apurados no vencimento poderão divergir das taxas demonstradas devido à volatilidade econômica, às mudanças de curva, ao comportamento "
-                "da inflação, à tributação e às particularidades de cada ativo. Este cálculo possui caráter estritamente informativo e não configura promessa, recomendação de investimento ou garantia de rentabilidade futura."
+                "**Aviso:** Os resultados são estimativas baseadas nas taxas de mercado da data consultada. "
+                "Para títulos IPCA+, usamos a inflação implícita nas taxas da ANBIMA, que pode ser diferente da inflação futura. "
+                "O retorno final pode variar conforme as condições de mercado, os impostos e as características do título. "
+                "Esta simulação é apenas informativa e não representa recomendação de investimento nem garantia de rentabilidade."
             )
-            simulacao_concluida = True
         except Exception as e:
             st.error(
                 f"Ops! Não foi possível acessar a base de dados da ANBIMA no momento. Tente novamente em alguns minutos. Detalhe: {e}"
             )
 else:
     st.info("👈 Preencha os dados no menu lateral e clique em **Simular** para projetar a curva.")
-
-try:
-    try:
-        database_url = st.secrets.get("SIMULACOES_DATABASE_URL")
-    except FileNotFoundError:
-        database_url = None
-    total_simulacoes = atualizar_contador(incrementar=simulacao_concluida, database_url=database_url)
-    if total_simulacoes is None:
-        st.caption("Contador de simulações aguardando configuração")
-    else:
-        st.caption(f"{total_simulacoes:,} simulações feitas desde 07/09/2026".replace(",", "."))
-except Exception:
-    logging.getLogger(__name__).exception("Não foi possível atualizar o contador de simulações")
-    st.caption("Contador de simulações temporariamente indisponível")

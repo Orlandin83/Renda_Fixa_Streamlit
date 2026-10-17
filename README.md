@@ -10,35 +10,37 @@ O referencial é estimado pela curva prefixada ANBIMA. Não representa uma taxa
 contratada de remuneração diária em % do CDI. Quando o referencial é zero,
 o indicador apresenta N/D. O IR não entra nessa comparação bruta.
 
-## Contador global no Streamlit Community Cloud
+## Curvas de juros
 
-O contador depende de PostgreSQL externo para sobreviver a recriações do app.
+O menu superior alterna entre o simulador e a comparação histórica, sem exigir
+seleção de títulos. Compare duas ou três datas nas curvas prefixada, real (IPCA+)
+e de inflação implícita. O gráfico usa prazos constantes (252 dias úteis/ano),
+com opções de 5, 10, 20 e 30 anos (padrão: 10), tabela por prazo e exportação CSV.
+O último vértice publicado é armazenado por data/indexador: a linha fica tracejada
+além dele. Para inflação implícita, usa-se o menor limite das duas curvas.
+Limites ausentes são sinalizados com linha pontilhada. A tabela marca os prazos
+extrapolados com asterisco, e o CSV inclui a classificação de cada ponto. A variação em pontos-base é
+sempre a última data menos a primeira, independentemente da ordem de seleção.
 
-1. Em um banco PostgreSQL, execute `contador_setup.sql` uma vez.
-2. Em Settings > Secrets do aplicativo, configure uma conexão de servidor:
+O Supabase `renda-fixa` armazena quatro betas e dois lambdas por data/indexador.
+O app consulta a Data API com chave publicável, somente leitura, sem precisar
+de senha do banco nos Secrets. A tabela tem RLS; os clientes públicos não podem
+inserir, alterar, excluir nem executar a coleta. O cache do app dura 15 minutos.
 
-   ```toml
-   SIMULACOES_DATABASE_URL = "postgresql://USUARIO:SENHA@HOST:5432/BANCO?sslmode=require"
-   ```
+`curvas_setup.sql` documenta a instalação em um banco novo. A instalação já foi
+aplicada no projeto conectado. A coleta privada roda pelo Supabase Cron às
+21h30 e 23h30 de Brasília, independentemente de acessos ao Streamlit, e reconsulta
+a última semana para recuperar atrasos e revisões. Feriados e publicações vazias
+não geram registros; pares incompletos ou parâmetros inválidos abortam a coleta.
+A data do cabeçalho precisa corresponder à data solicitada.
 
-   Use a URL fornecida pelo seu provedor, compatível com a rede do Community
-   Cloud, e um usuário autorizado a SELECT/UPDATE na tabela. Com RLS ativado,
-   a conexão deve usar o proprietário da tabela ou uma política apropriada.
-   Não coloque credenciais no Git. Caracteres especiais na senha devem estar
-   codificados para URL.
+Histórico inicial: dez datas disponíveis entre 01/10/2026 e 15/10/2026. Para
+carga administrativa adicional: `select curvas_privado.coletar('AAAA-MM-DD');`.
+Monitoramento: Supabase > Integrations > Cron > `curvas-anbima-diaria` > History.
+Uma indisponibilidade da ANBIMA gera falha no job e nova tentativa na próxima
+execução; interrupções superiores a uma semana exigem recompor o intervalo.
 
-3. Publique o código com as dependências atualizadas.
-
-Cada clique em Simular que conclui a apresentação dos resultados soma 1,
-mesmo na comparação de dois títulos. Acessos, mudanças de campos e simulações
-com erro não somam. O total é compartilhado, com incremento atômico, e aparece
-no rodapé: `XX simulações feitas desde 07/09/2026`.
-O rodapé consulta o total a cada execução da página; não atualiza sozinho em
-abas ociosas. A data é fixa e o total inicia em zero na ativação: não há
-recuperação de simulações anteriores. Se o banco falhar, o cálculo continua,
-mas aquela simulação pode não ser contabilizada; não há total local substituto.
-
-Para desenvolvimento local, é possível configurar `SIMULACOES_DB_PATH` com
-um caminho SQLite. Não use esse modo como armazenamento no Community Cloud.
+O contador e seus arquivos foram excluídos. A antiga chave
+`SIMULACOES_DATABASE_URL` não é mais usada e pode ser removida dos Secrets.
 
 Testes: `.venv/bin/python -m unittest discover -s tests`.
