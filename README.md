@@ -1,6 +1,51 @@
 # Simulador de renda fixa
 
-Execute `pip install -r requirements.txt` e `streamlit run streamlitrendafixa.py`.
+## Ambiente com uv
+
+Instale o [uv](https://docs.astral.sh/uv/getting-started/installation/) em cada
+computador. Depois de clonar o repositório, execute na pasta do projeto:
+
+```sh
+uv sync --locked
+uv run --locked streamlit run streamlitrendafixa.py
+```
+
+O uv baixa o Python 3.13.5, se necessário, e cria o ambiente `.venv` com as
+versões registradas no `uv.lock`. Não é necessário ativar o ambiente manualmente.
+A série Python 3.13 é usada para manter compatibilidade com as dependências atuais.
+Configuração validada com uv 0.13.4.
+
+Para sincronizar alterações em outro computador:
+
+```sh
+git pull
+uv sync --locked
+```
+
+Versione `pyproject.toml`, `uv.lock` e `.python-version` junto com o código.
+Cada computador deve ter sua própria `.venv`; não copie ou sincronize essa pasta
+pelo iCloud ou outros serviços. Prefira clones locais separados via Git.
+No VS Code, selecione o interpretador da `.venv` deste projeto.
+As configurações locais em `.streamlit/secrets.toml`, quando necessárias, devem
+ser configuradas separadamente em cada máquina e não entram no Git.
+
+### Dependências
+
+`pyproject.toml` é a fonte das dependências diretas; `uv.lock` fixa também as
+dependências transitivas. Para adicionar ou remover pacotes, use `uv add nome`
+ou `uv remove nome`. Para mudar uma versão fixada, use, por exemplo,
+`uv add 'requests==VERSAO'`, substituindo `VERSAO` pela versão desejada.
+
+O `requirements.txt` é exportado do lock para ambientes que ainda usam pip.
+Após qualquer alteração nas dependências, regenere esse arquivo e rode os testes:
+
+```sh
+uv export --locked --no-dev --no-emit-project --no-hashes --output-file requirements.txt
+uv run --locked python -m unittest discover -s tests
+```
+
+Inclua os arquivos de dependências alterados no mesmo commit. O Dev Container
+também instala e executa o app com uv.
 
 ## IPCA+ e CDI projetado
 
@@ -43,4 +88,9 @@ execução; interrupções superiores a uma semana exigem recompor o intervalo.
 O contador e seus arquivos foram excluídos. A antiga chave
 `SIMULACOES_DATABASE_URL` não é mais usada e pode ser removida dos Secrets.
 
-Testes: `.venv/bin/python -m unittest discover -s tests`.
+Testes: `uv run --locked python -m unittest discover -s tests`.
+
+Na validação da migração para uv, 4 dos 9 testes passaram; os 5 testes de
+interação falharam no `AppTest` do Streamlit 1.48.1 ao processar o
+`segmented_control` (`ValueError` em `ButtonGroup.indices`). Essa limitação
+permanece pendente; a migração preserva a versão de Streamlit já declarada.
