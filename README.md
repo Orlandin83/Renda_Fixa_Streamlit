@@ -10,10 +10,20 @@ uv sync --locked
 uv run --locked streamlit run streamlitrendafixa.py
 ```
 
-O uv baixa o Python 3.13.5, se necessário, e cria o ambiente `.venv` com as
+O uv baixa o Python 3.13, se necessário, e cria o ambiente `.venv` com as
 versões registradas no `uv.lock`. Não é necessário ativar o ambiente manualmente.
 A série Python 3.13 é usada para manter compatibilidade com as dependências atuais.
 Configuração validada com uv 0.13.4.
+
+O arquivo `.python-version` fixa apenas a série `3.13`, permitindo usar a
+atualização de correção disponível no computador ou serviço de hospedagem.
+As versões das dependências continuam fixadas no `uv.lock`.
+
+No Streamlit Community Cloud, selecione **Python 3.13** em **Advanced settings**
+ao implantar. A seleção do interpretador é feita pela plataforma; o arquivo
+`.python-version` não instala uma versão específica no Cloud. Se o app existente
+usar outra série, siga as
+[instruções para alterar o Python](https://docs.streamlit.io/deploy/streamlit-community-cloud/manage-your-app/upgrade-python).
 
 Para sincronizar alterações em outro computador:
 
